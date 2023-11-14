@@ -1,9 +1,8 @@
-package main
+package config
 
 import (
 	"context"
 	"fmt"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
@@ -11,7 +10,7 @@ import (
 	"path/filepath"
 )
 
-func main() {
+func config() {
 	var (
 		client           *kubernetes.Clientset
 		deploymentLabels map[string]string
@@ -22,10 +21,10 @@ func main() {
 		fmt.Printf("Error: %s", err)
 		os.Exit(1)
 	}
-	if deploymentLabels, err = getService(ctx, client); err != nil {
-		fmt.Printf("Error: %s", err)
-		os.Exit(1)
-	}
+	//if deploymentLabels, err = getService(ctx, client); err != nil {
+	//	fmt.Printf("Error: %s", err)
+	//	os.Exit(1)
+	//}
 	fmt.Printf("deploy finished. Did a deploy with labels: %+v \n", deploymentLabels)
 }
 func getClient() (*kubernetes.Clientset, error) {
@@ -67,13 +66,13 @@ func getClient() (*kubernetes.Clientset, error) {
 //
 //}
 
-func getService(ctx context.Context, client *kubernetes.Clientset) (map[string]string, error) {
-	service, err := client.CoreV1().Endpoints("monitoring").List(context.TODO(), metav1.ListOptions{})
-	if err != nil {
-		return nil, fmt.Errorf("Service not found: %s", err)
-	}
-	for _, s := range service.Items {
-		fmt.Printf("Service Name: %s\n", s.Name)
-	}
-	return nil, fmt.Errorf("Service not found: %s", err)
+//func getService(ctx context.Context, client *kubernetes.Clientset) (map[string]string, error) {
+//	service, err := client.CoreV1().Endpoints("monitoring").List(context.TODO(), metav1.ListOptions{})
+//	if err != nil {
+//		return nil, fmt.Errorf("Service not found: %s", err)
+//	}
+//	for _, s := range service.Items {
+//		fmt.Printf("Service Name: %s\n", s.Name)
+//	}
+//	return nil, fmt.Errorf("Service not found: %s", err)
 }
