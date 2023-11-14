@@ -1,0 +1,17 @@
+{
+  "$schema" : "https://json-schema.org/draft/2020-12/schema",
+  "$id" : "https://default/hello/0.1.0/extra-values.schema.json",
+  "x-generated-by" : "helm-values 0.7.1",
+  "x-generated-at" : "2023-11-13T08:46:10Z",
+  "title" : "Extra configuration for packaged chart hello:0.1.0",
+  "description" : "\n\\n",
+  "properties" : {
+    "global" : {
+      "$ref" : "aggregated-values.schema.json#/properties/global"
+    },
+    "hello" : {
+      "$ref" : "aggregated-values.schema.json"
+    }
+  },
+  "additionalProperties" : false
+}
