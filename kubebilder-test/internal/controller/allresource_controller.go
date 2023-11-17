@@ -46,18 +46,18 @@ type AllResourceReconciler struct {
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.16.3/pkg/reconcile
 func (r *AllResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	l := log.FromContext(ctx)
-	pod := &corev1.Pod{}
-	if err := r.Get(ctx, req.NamespacedName, pod); err != nil {
+	event := &corev1.Event{}
+	if err := r.Get(ctx, req.NamespacedName, event); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
-	l.Info("pod", "name", pod.Name, "namespace", pod.Namespace)
+	//l.Info("pod", "name", pod.Name, "namespace", pod.Namespace)
+	l.Info("Event", "event:", event.Name, "time", event.EventTime, "label", event.Labels)
 	return ctrl.Result{}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *AllResourceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&corev1.Pod{}).
-		Owns(&corev1.Pod{}).
+		For(&corev1.Event{}).
 		Complete(r)
 }
