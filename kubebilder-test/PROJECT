@@ -17,4 +17,13 @@ resources:
   kind: CronJob
   path: test.kubebuilder.io/project/api/v1
   version: v1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: test.kubebuilder.io
+  group: batch
+  kind: Result
+  path: test.kubebuilder.io/project/api/v1alpha1
+  version: v1alpha1
 version: "3"

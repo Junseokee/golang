@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1
+package v1alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -23,42 +23,53 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// CronJobSpec defines the desired state of CronJob
-type CronJobSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
-	// Foo is an example field of CronJob. Edit cronjob_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+type Failure struct {
+	Text      string      `json:"text,omitempty"`
+	Sensitive []Sensitive `json:"sensitive,omitempty"`
 }
 
-// CronJobStatus defines the observed state of CronJob
-type CronJobStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+type Sensitive struct {
+	Unmasked string `json:"unmasked,omitempty"`
+	Masked   string `json:"masked,omitempty"`
+}
+
+// ResultSpec defines the desired state of Result
+type ResultSpec struct {
+	Backend      string    `json:"backend"`
+	Kind         string    `json:"kind"`
+	Name         string    `json:"name"`
+	Error        []Failure `json:"error"`
+	Details      string    `json:"details"`
+	ParentObject string    `json:"parentObject"`
+}
+
+// ResultStatus defines the observed state of Result
+type ResultStatus struct {
+	LifeCycle string `json:"lifecycle,omitempty"`
+	Webhook   string `json:"webhook,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
-// CronJob is the Schema for the cronjobs API
-type CronJob struct {
+// Result is the Schema for the results API
+type Result struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   CronJobSpec   `json:"spec,omitempty"`
-	Status CronJobStatus `json:"status,omitempty"`
+	Spec   ResultSpec   `json:"spec,omitempty"`
+	Status ResultStatus `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 
-// CronJobList contains a list of CronJob
-type CronJobList struct {
+// ResultList contains a list of Result
+type ResultList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []CronJob `json:"items"`
+	Items           []Result `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&CronJob{}, &CronJobList{})
+	SchemeBuilder.Register(&Result{}, &ResultList{})
 }
