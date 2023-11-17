@@ -1,20 +1,20 @@
-# permissions for end users to edit cronjobs.
+# permissions for end users to edit allresources.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
     app.kubernetes.io/name: clusterrole
-    app.kubernetes.io/instance: cronjob-editor-role
+    app.kubernetes.io/instance: allresource-editor-role
     app.kubernetes.io/component: rbac
     app.kubernetes.io/created-by: kubebilder-test
     app.kubernetes.io/part-of: kubebilder-test
     app.kubernetes.io/managed-by: kustomize
-  name: cronjob-editor-role
+  name: allresource-editor-role
 rules:
 - apiGroups:
-  - batch.test.kubebuilder.io
+  - core.test.kubebuilder.io
   resources:
-  - cronjobs
+  - allresources
   verbs:
   - create
   - delete
@@ -24,8 +24,8 @@ rules:
   - update
   - watch
 - apiGroups:
-  - batch.test.kubebuilder.io
+  - core.test.kubebuilder.io
   resources:
-  - cronjobs/status
+  - allresources/status
   verbs:
   - get

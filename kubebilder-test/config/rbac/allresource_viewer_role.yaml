@@ -1,27 +1,27 @@
-# permissions for end users to view cronjobs.
+# permissions for end users to view allresources.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
     app.kubernetes.io/name: clusterrole
-    app.kubernetes.io/instance: cronjob-viewer-role
+    app.kubernetes.io/instance: allresource-viewer-role
     app.kubernetes.io/component: rbac
     app.kubernetes.io/created-by: kubebilder-test
     app.kubernetes.io/part-of: kubebilder-test
     app.kubernetes.io/managed-by: kustomize
-  name: cronjob-viewer-role
+  name: allresource-viewer-role
 rules:
 - apiGroups:
-  - batch.test.kubebuilder.io
+  - core.test.kubebuilder.io
   resources:
-  - cronjobs
+  - allresources
   verbs:
   - get
   - list
   - watch
 - apiGroups:
-  - batch.test.kubebuilder.io
+  - core.test.kubebuilder.io
   resources:
-  - cronjobs/status
+  - allresources/status
   verbs:
   - get

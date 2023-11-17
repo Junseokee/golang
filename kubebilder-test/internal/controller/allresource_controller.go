@@ -18,45 +18,46 @@ package controller
 
 import (
 	"context"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-
-	batchv1alpha1 "test.kubebuilder.io/project/api/v1alpha1"
 )
 
-// ResultReconciler reconciles a Result object
-type ResultReconciler struct {
+// AllResourceReconciler reconciles a AllResource object
+type AllResourceReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=batch.test.kubebuilder.io,resources=results,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=batch.test.kubebuilder.io,resources=results/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=batch.test.kubebuilder.io,resources=results/finalizers,verbs=update
+//+kubebuilder:rbac:groups=core,resources=allresources,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=core,resources=allresources/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=core,resources=allresources/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
 // TODO(user): Modify the Reconcile function to compare the state specified by
-// the Result object against the actual cluster state, and then
+// the AllResource object against the actual cluster state, and then
 // perform operations to make the cluster state reflect the state specified by
 // the user.
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.16.3/pkg/reconcile
-func (r *ResultReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
-	//
-	//resource := &core.Interface.
-	//if err := r.Get(ctx. req.Na)
-
+func (r *AllResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	l := log.FromContext(ctx)
+	pod := &corev1.Pod{}
+	if err := r.Get(ctx, req.NamespacedName, pod); err != nil {
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+	l.Info("pod", "name", pod.Name, "namespace", pod.Namespace)
 	return ctrl.Result{}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *ResultReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *AllResourceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&batchv1alpha1.Result{}).
+		For(&corev1.Pod{}).
+		Owns(&corev1.Pod{}).
 		Complete(r)
 }
