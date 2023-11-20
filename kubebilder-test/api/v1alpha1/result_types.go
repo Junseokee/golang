@@ -23,30 +23,24 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-type Failure struct {
-	Text      string      `json:"text,omitempty"`
-	Sensitive []Sensitive `json:"sensitive,omitempty"`
-}
-
-type Sensitive struct {
-	Unmasked string `json:"unmasked,omitempty"`
-	Masked   string `json:"masked,omitempty"`
-}
-
 // ResultSpec defines the desired state of Result
+
+type metadata struct {
+	Name      string `json:"name"`
+	Namespace string `json:"namespace"`
+	Kind      string `json:"kind"`
+	Labels    string `json:"label"`
+}
+
 type ResultSpec struct {
-	Backend      string    `json:"backend"`
-	Kind         string    `json:"kind"`
-	Name         string    `json:"name"`
-	Error        []Failure `json:"error"`
-	Details      string    `json:"details"`
-	ParentObject string    `json:"parentObject"`
+	Namespace string `json:"namespace"`
+	Kind      string `json:"kind"`
+	Name      string `json:"name"`
+	Error     string `json:"error"`
 }
 
 // ResultStatus defines the observed state of Result
 type ResultStatus struct {
-	LifeCycle string `json:"lifecycle,omitempty"`
-	Webhook   string `json:"webhook,omitempty"`
 }
 
 //+kubebuilder:object:root=true

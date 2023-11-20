@@ -4,9 +4,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.13.0
-  name: results.batch.test.kubebuilder.io
+  name: results.core.test.kubebuilder.io
 spec:
-  group: batch.test.kubebuilder.io
+  group: core.test.kubebuilder.io
   names:
     kind: Result
     listKind: ResultList

@@ -33,7 +33,7 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
 	corev1 "test.kubebuilder.io/project/api/v1"
-	batchv1alpha1 "test.kubebuilder.io/project/api/v1alpha1"
+	corev1alpha1 "test.kubebuilder.io/project/api/v1alpha1"
 	"test.kubebuilder.io/project/internal/controller"
 	//+kubebuilder:scaffold:imports
 )
@@ -45,7 +45,7 @@ var (
 
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-	utilruntime.Must(batchv1alpha1.AddToScheme(scheme))
+	utilruntime.Must(corev1alpha1.AddToScheme(scheme))
 	utilruntime.Must(corev1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
