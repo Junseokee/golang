@@ -1,5 +1,5 @@
 ## Append samples of your project ##
 resources:
-- batch_v1alpha1_result.yaml
+- core_v1alpha1_result.yaml
 - core_v1_allresource.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples

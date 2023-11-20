@@ -25,18 +25,19 @@ import (
 
 // ResultSpec defines the desired state of Result
 
-type metadata struct {
-	Name      string `json:"name"`
-	Namespace string `json:"namespace"`
-	Kind      string `json:"kind"`
-	Labels    string `json:"label"`
-}
+//type Event struct {
+//	Name      string `json:"name"`
+//	Namespace string `json:"namespace"`
+//	Kind      string `json:"kind"`
+//	Message   string `json:"Message"`
+//}
 
 type ResultSpec struct {
+	Name      string `json:"name"`
 	Namespace string `json:"namespace"`
 	Kind      string `json:"kind"`
-	Name      string `json:"name"`
-	Error     string `json:"error"`
+	Message   string `json:"message"`
+	//Event     []Event `json:"error"`
 }
 
 // ResultStatus defines the observed state of Result

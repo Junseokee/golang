@@ -33,17 +33,17 @@ spec:
             type: object
           spec:
             properties:
-              error:
-                type: string
               kind:
+                type: string
+              message:
                 type: string
               name:
                 type: string
               namespace:
                 type: string
             required:
-            - error
             - kind
+            - message
             - name
             - namespace
             type: object
