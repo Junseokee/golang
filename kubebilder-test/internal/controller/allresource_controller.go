@@ -50,7 +50,23 @@ type AllResourceReconciler struct {
 
 func (r *AllResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	l := log.FromContext(ctx)
-	pod := &v1.Pod{}
+	var events v1.EventList
+	if err := r.Client.List(ctx, &events); err != nil {
+		return ctrl.Result{}, err
+	}
+
+	for _, event := range events.Items {
+		// JSON 형식으로 직렬화할 오브젝트를 설정합니다.
+		var pod v1.Pod // 적절한 오브젝트 타입으로 변경
+
+		jsonString, err := resource.SerializeObjectAsJSON(ctx, r.Client, client.ObjectKey{Name: event.InvolvedObject.Name, Namespace: event.InvolvedObject.Namespace}, &pod)
+		if err != nil {
+			// 에러 처리
+			continue
+		}
+
+		l.Info("JSON for object", "json", jsonString)
+	}
 
 	results, err := resource.GetResult(ctx, r.Client)
 	if err != nil {
@@ -62,6 +78,34 @@ func (r *AllResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 	return ctrl.Result{}, nil
 
+	//// 이벤트 목록을 가져옵니다.
+	//var events v1.EventList
+	//if err := r.Client.List(ctx, &events); err != nil {
+	//	return ctrl.Result{}, err
+	//}
+	//
+	//// JSON to YAML 변환을 위한 Serializer 생성
+	//s := json.NewSerializerWithOptions(json.DefaultMetaFactory, nil, nil, json.SerializerOptions{Yaml: true})
+	//
+	//for _, event := range events.Items {
+	//	// 연관된 오브젝트를 가져옵니다.
+	//	var obj runtime.Object // 연관된 오브젝트 타입에 따라 변경
+	//	if err := r.Client.Get(ctx, client.ObjectKey{Name: event.InvolvedObject.Name, Namespace: event.InvolvedObject.Namespace}, obj); err != nil {
+	//		// 오브젝트 가져오기 실패
+	//		continue
+	//	}
+	//
+	//	// 오브젝트를 YAML 형태로 변환
+	//	yamlBytes, err := serializeToYAML(obj, s)
+	//	if err != nil {
+	//		// YAML 변환 실패
+	//		continue
+	//	}
+	//
+	//	// 여기서 yamlBytes를 사용하여 필요한 작업을 수행합니다.
+	//	// 예: 로깅, 저장, CRD 업데이트 등
+	//	l.Info("YAML for object", "yaml", string(yamlBytes))
+	//}
 }
 
 // SetupWithManager sets up the controller with the Manager.
