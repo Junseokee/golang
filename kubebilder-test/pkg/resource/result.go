@@ -59,17 +59,17 @@ func extractImagesFromPod(pod *v1.Pod) []string {
 	return images
 }
 
-func GetResult(ctx context.Context, c client.Client) ([]v1alpha1.Result, error) {
-	var results []v1alpha1.Result
-	eventList := &v1.EventList{} // EventList의 포인터를 생성합니다.
-
-	// EventList를 가져옵니다. 이때 List 메서드를 사용합니다.
-	if err := c.List(ctx, eventList); err != nil {
-		return nil, err
-	}
-
-	return results, nil
-}
+//func GetResult(ctx context.Context, c client.Client) ([]v1alpha1.Result, error) {
+//	var results []v1alpha1.Result
+//	eventList := &v1.EventList{} // EventList의 포인터를 생성합니다.
+//
+//	// EventList를 가져옵니다. 이때 List 메서드를 사용합니다.
+//	if err := c.List(ctx, eventList); err != nil {
+//		return nil, err
+//	}
+//
+//	return results, nil
+//}
 
 //func GetResourceYAMLs(ctx context.Context, c client.Client, eventList *v1.EventList) ([]string, error) {
 //	var yamlStrings []string
