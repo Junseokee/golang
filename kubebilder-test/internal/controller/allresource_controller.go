@@ -18,12 +18,14 @@ package controller
 
 import (
 	"context"
-	corev1 "k8s.io/api/core/v1"
+	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	corev1alpha1 "test.kubebuilder.io/project/api/v1alpha1"
+	"test.kubebuilder.io/project/pkg/resource"
 )
 
 // AllResourceReconciler reconciles a AllResource object
@@ -45,42 +47,18 @@ type AllResourceReconciler struct {
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.16.3/pkg/reconcile
+
 func (r *AllResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	l := log.FromContext(ctx)
-	event := &corev1.Event{}
-	result := &corev1alpha1.Result{}
-	//pod := &corev1.Pod{}
-	if err := r.Get(ctx, req.NamespacedName, event); err != nil {
-		return ctrl.Result{}, client.IgnoreNotFound(err)
+	pod := &v1.Pod{}
+
+	results, err := resource.GetResult(ctx, r.Client)
+	if err != nil {
+		return ctrl.Result{}, err
 	}
-	//l.Info("pod", "name", pod.Name, "namespace", pod.Namespace)
-
-	result.Spec.Name = event.Name
-	result.Spec.Namespace = event.Namespace
-	result.Spec.Message = event.Message
-	result.Spec.Kind = event.InvolvedObject.Kind
-	///*	if err := r.Get(ctx, client.ObjectKey{Namespace: result.Spec.Namespace, Name: result.Name}, result); err != nil {
-	//		return ctrl.Result{}, client.IgnoreNotFound(err)
-	//	} else {
-	//		l.Info("pod",
-	//			"pod :", pod)
-	//	}*/
-
-	l.Info("Event",
-		"이름 :", result.Spec.Name,
-		"네임스페이스 :", result.Spec.Namespace,
-		"메세지 : ", result.Spec.Message,
-		"리소스 :", result.Spec.Kind)
-
-	//result.Spec.Event = append(result.Spec.Event, corev1alpha1.Event{
-	//	Name:      event.Name,
-	//	Namespace: event.Namespace,
-	//	Kind:      event.Kind,
-	//	Message:   event.Message,
-	//})
-	//l.Info("event_log", "이름 :", event.Name, "종류 :", event.Kind, "메세지 :", event.Message)
-	//l.Info("Result",
-	//	"Result", result.Spec.Event)
+	for _, result := range results {
+		l.Info("로그로그 :", "name", result)
+	}
 
 	return ctrl.Result{}, nil
 
@@ -89,6 +67,8 @@ func (r *AllResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 // SetupWithManager sets up the controller with the Manager.
 func (r *AllResourceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&corev1.Event{}).
+		For(&corev1alpha1.Result{}).
+		Watches(&v1.Event{}, &handler.EnqueueRequestForObject{}).
+		Watches(&v1.Pod{}, &handler.EnqueueRequestForObject{}).
 		Complete(r)
 }
