@@ -25,19 +25,20 @@ import (
 
 // ResultSpec defines the desired state of Result
 
-//type Event struct {
-//	Name      string `json:"name"`
-//	Namespace string `json:"namespace"`
-//	Kind      string `json:"kind"`
-//	Message   string `json:"Message"`
-//}
+type Event struct {
+	Type    string `json:"Type"`
+	Reason  string `json:"Reason"`
+	Count   int16  `json:"Count"`
+	Message string `json:"Message"`
+}
 
 type ResultSpec struct {
-	Name      string `json:"name"`
-	Namespace string `json:"namespace"`
-	Kind      string `json:"kind"`
-	Message   string `json:"message"`
-	//Event     []Event `json:"error"`
+	Name      string            `json:"name"`
+	Namespace string            `json:"namespace"`
+	Kind      string            `json:"kind"`
+	Event     []Event           `json:"Event"`
+	Images    []string          `json:"images"`
+	Labels    map[string]string `json:"labels"`
 }
 
 // ResultStatus defines the observed state of Result

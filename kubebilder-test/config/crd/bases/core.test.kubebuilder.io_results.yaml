@@ -33,17 +33,43 @@ spec:
             type: object
           spec:
             properties:
+              Event:
+                items:
+                  properties:
+                    Count:
+                      type: integer
+                    Message:
+                      type: string
+                    Reason:
+                      type: string
+                    Type:
+                      type: string
+                  required:
+                  - Count
+                  - Message
+                  - Reason
+                  - Type
+                  type: object
+                type: array
+              images:
+                items:
+                  type: string
+                type: array
               kind:
                 type: string
-              message:
-                type: string
+              labels:
+                additionalProperties:
+                  type: string
+                type: object
               name:
                 type: string
               namespace:
                 type: string
             required:
+            - Event
+            - images
             - kind
-            - message
+            - labels
             - name
             - namespace
             type: object

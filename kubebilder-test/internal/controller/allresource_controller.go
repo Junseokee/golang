@@ -26,6 +26,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	corev1alpha1 "test.kubebuilder.io/project/api/v1alpha1"
 	"test.kubebuilder.io/project/pkg/resource"
+	"time"
 )
 
 // AllResourceReconciler reconciles a AllResource object
@@ -51,21 +52,26 @@ type AllResourceReconciler struct {
 func (r *AllResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	l := log.FromContext(ctx)
 	var events v1.EventList
+
 	if err := r.Client.List(ctx, &events); err != nil {
 		return ctrl.Result{}, err
 	}
-
+	var pod v1.Pod
 	for _, event := range events.Items {
-		// JSON 형식으로 직렬화할 오브젝트를 설정합니다.
-		var pod v1.Pod // 적절한 오브젝트 타입으로 변경
+		eventPod := corev1alpha1.Event{
+			Type:    event.Type,
+			Reason:  event.Reason,
+			Count:   int16(event.Count),
+			Message: event.Message,
+		}
 
-		jsonString, err := resource.SerializeObjectAsJSON(ctx, r.Client, client.ObjectKey{Name: event.InvolvedObject.Name, Namespace: event.InvolvedObject.Namespace}, &pod)
+		jsonString, err := resource.SerializeObjectAsJSON(ctx, r.Client, client.ObjectKey{Name: event.InvolvedObject.Name, Namespace: event.InvolvedObject.Namespace}, &pod, eventPod)
 		if err != nil {
 			// 에러 처리
 			continue
 		}
 
-		l.Info("JSON for object", "json", jsonString)
+		l.Info("Pod 정보 입력 :", "json", jsonString)
 	}
 
 	results, err := resource.GetResult(ctx, r.Client)
@@ -76,7 +82,7 @@ func (r *AllResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		l.Info("로그로그 :", "name", result)
 	}
 
-	return ctrl.Result{}, nil
+	return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
 
 	//// 이벤트 목록을 가져옵니다.
 	//var events v1.EventList
