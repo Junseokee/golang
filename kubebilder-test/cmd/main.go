@@ -21,9 +21,6 @@ import (
 	"flag"
 	"os"
 	"test.kubebuilder.io/project/pkg/integrations"
-	"test.kubebuilder.io/project/pkg/sinks"
-	"time"
-
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
@@ -114,23 +111,23 @@ func main() {
 		os.Exit(1)
 	}
 
-	timeout, exists := os.LookupEnv("OPERATOR_SINK_WEBHOOK_TIMEOUT_SECONDS")
-	if !exists {
-		timeout = "35s"
-	}
-
-	sinkTimeout, err := time.ParseDuration(timeout)
-	if err != nil {
-		setupLog.Error(err, "unable to read webhook timeout value")
-		os.Exit(1)
-	}
-	sinkClient := sinks.NewClient(sinkTimeout)
+	//timeout, exists := os.LookupEnv("OPERATOR_SINK_WEBHOOK_TIMEOUT_SECONDS")
+	//if !exists {
+	//	timeout = "35s"
+	//}
+	//
+	//sinkTimeout, err := time.ParseDuration(timeout)
+	//if err != nil {
+	//	setupLog.Error(err, "unable to read webhook timeout value")
+	//	os.Exit(1)
+	//}
+	//sinkClient := sinks.NewClient(sinkTimeout)
 
 	if err = (&controller.AllResourceReconciler{
 		Client:       mgr.GetClient(),
 		Scheme:       mgr.GetScheme(),
 		Integrations: integration,
-		SinkClient:   sinkClient,
+		//SinkClient:   sinkClient,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "K8sGPT")
 		os.Exit(1)

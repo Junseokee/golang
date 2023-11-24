@@ -48,24 +48,6 @@ type KubegptReconciler struct {
 func (r *KubegptReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
 
-	//kubegptConfig := &corev1alpha1.Kubegpt{}
-	//err := r.Get(ctx, req.NamespacedName, kubegptConfig)
-	//if err != nil {
-	//	return ctrl.Result{}, client.IgnoreNotFound(err)
-	//}
-	//
-	//deployment := v1.Deployment{}
-	//err = r.Get(ctx, client.ObjectKey{Namespace: kubegptConfig.Namespace,
-	//	Name: "k8sgpt-deployment"}, &deployment)
-	//if client.IgnoreNotFound(err) != nil {
-	//	return ctrl.Result{}, client.IgnoreNotFound(err)
-	//}
-	//err = resources.Sync(ctx, r.Client, *k8sgptConfig, resources.SyncOp)
-	//if err != nil {
-	//	k8sgptReconcileErrorCount.Inc()
-	//	return r.finishReconcile(err, false)
-	//}
-
 	return ctrl.Result{}, nil
 }
 

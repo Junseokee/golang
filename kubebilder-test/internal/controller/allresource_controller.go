@@ -37,7 +37,7 @@ type AllResourceReconciler struct {
 	client.Client
 	Scheme       *runtime.Scheme
 	Integrations *integrations.Integrations
-	SinkClient   *sinks.Client
+	//SinkClient   *sinks.Client
 }
 
 //+kubebuilder:rbac:groups=core,resources=allresources,verbs=get;list;watch;create;update;patch;delete
@@ -62,8 +62,8 @@ func (r *AllResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	var events v12.EventList
-	if err := r.Client.List(ctx, &events); err != nil {
+	events := &v12.EventList{}
+	if err := r.Client.List(ctx, events); err != nil {
 		return ctrl.Result{}, err
 	}
 
@@ -96,18 +96,23 @@ func (r *AllResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 	if kubegptConfig.Spec.Sink != nil && kubegptConfig.Spec.Sink.Type != "" && kubegptConfig.Spec.Sink.Endpoint != "" {
 		// sink 설정
-		var sinkType sinks.ISink
-		sinkType = sinks.NewSink(kubegptConfig.Spec.Sink.Type)
-
-		sinkType.Configure(*kubegptConfig, *r.SinkClient)
+		var slackSink sinks.SlackSink
+		slackSink.Configure(kubegptConfig)
 
 		for _, result := range resultList.Items {
-			if err := sinkType.Emit(result.Spec); err != nil {
-				l.Error(err, "Sink 발송 실패")
-				continue
+			var res corev1alpha1.Result
+			if err := r.Get(ctx, client.ObjectKey{Name: result.Name, Namespace: result.Namespace}, &res); err == nil {
+				l.Error(err, "Result 조회 실패", "name", result.Name, "namespace", result.Namespace)
 			}
-			// 결과 상태 업데이트
-			result.Status.Webhook = kubegptConfig.Spec.Sink.Endpoint
+			if res.Status.Webhook == "" {
+				if err := slackSink.Emit(result.Spec); err != nil {
+					l.Error(err, "Sink 발송 실패")
+					return ctrl.Result{}, err
+				}
+				result.Status.Webhook = kubegptConfig.Spec.Sink.Endpoint
+			} else {
+				res.Status.Webhook = ""
+			}
 		}
 	}
 
