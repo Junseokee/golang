@@ -39,7 +39,6 @@ func SerializeObjectAsJSON(ctx context.Context, c client.Client, key client.Obje
 		//if err != nil {
 		//	return "", err
 		//}
-
 		return result, nil
 	}
 
@@ -58,50 +57,3 @@ func extractImagesFromPod(pod *v1.Pod) []string {
 	}
 	return images
 }
-
-//func GetResult(ctx context.Context, c client.Client) ([]v1alpha1.Result, error) {
-//	var results []v1alpha1.Result
-//	eventList := &v1.EventList{} // EventList의 포인터를 생성합니다.
-//
-//	// EventList를 가져옵니다. 이때 List 메서드를 사용합니다.
-//	if err := c.List(ctx, eventList); err != nil {
-//		return nil, err
-//	}
-//
-//	return results, nil
-//}
-
-//func GetResourceYAMLs(ctx context.Context, c client.Client, eventList *v1.EventList) ([]string, error) {
-//	var yamlStrings []string
-//	s := json.NewSerializerWithOptions(json.DefaultMetaFactory, nil, nil, json.SerializerOptions{Yaml: true})
-//
-//	for _, event := range eventList.Items {
-//		obj, err := getResource(ctx, c, event.InvolvedObject)
-//		if err != nil {
-//			return nil, err
-//		}
-//
-//		yamlBytes, err := serializeToYAML(obj, s)
-//		if err != nil {
-//			return nil, err
-//		}
-//
-//		yamlStrings = append(yamlStrings, string(yamlBytes))
-//	}
-//
-//	return yamlStrings, nil
-//}
-//
-//func getResource(ctx context.Context, c client.Client, ref v1.ObjectReference) (runtime.Object, error) {
-//	obj := &v1.Pod{} // 예시로 Pod를 사용합니다. 실제로는 ref.Kind에 따라 다른 타입을 사용해야 할 수 있습니다.
-//	err := c.Get(ctx, types.NamespacedName{Name: ref.Name, Namespace: ref.Namespace}, obj)
-//	return obj, err
-//}
-//
-//func serializeToYAML(obj runtime.Object, s *json.Serializer) ([]byte, error) {
-//	var yamlBuffer bytes.Buffer
-//	if err := s.Encode(obj, &yamlBuffer); err != nil {
-//		return nil, err
-//	}
-//	return yamlBuffer.Bytes(), nil
-//}

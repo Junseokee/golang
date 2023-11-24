@@ -43,6 +43,8 @@ type ResultSpec struct {
 
 // ResultStatus defines the observed state of Result
 type ResultStatus struct {
+	Webhook   string `json:"webhook,omitempty"`
+	LifeCycle string `json:"lifecycle,omitempty"`
 }
 
 //+kubebuilder:object:root=true

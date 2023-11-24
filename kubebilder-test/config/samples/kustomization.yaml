@@ -2,4 +2,5 @@
 resources:
 - core_v1alpha1_result.yaml
 - core_v1_allresource.yaml
+- core_v1alpha1_kubegpt.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples

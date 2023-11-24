@@ -17,8 +17,12 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"flag"
 	"os"
+	"test.kubebuilder.io/project/pkg/integrations"
+	"test.kubebuilder.io/project/pkg/sinks"
+	"time"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -97,6 +101,41 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "AllResource")
 		os.Exit(1)
 	}
+	if err = (&controller.KubegptReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Kubegpt")
+		os.Exit(1)
+	}
+	integration, err := integrations.NewIntegrations(mgr.GetClient(), context.Background())
+	if err != nil {
+		setupLog.Error(err, "unable to create REST client to initialise Integrations")
+		os.Exit(1)
+	}
+
+	timeout, exists := os.LookupEnv("OPERATOR_SINK_WEBHOOK_TIMEOUT_SECONDS")
+	if !exists {
+		timeout = "35s"
+	}
+
+	sinkTimeout, err := time.ParseDuration(timeout)
+	if err != nil {
+		setupLog.Error(err, "unable to read webhook timeout value")
+		os.Exit(1)
+	}
+	sinkClient := sinks.NewClient(sinkTimeout)
+
+	if err = (&controller.AllResourceReconciler{
+		Client:       mgr.GetClient(),
+		Scheme:       mgr.GetScheme(),
+		Integrations: integration,
+		SinkClient:   sinkClient,
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "K8sGPT")
+		os.Exit(1)
+	}
+
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {

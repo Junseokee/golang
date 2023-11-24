@@ -18,22 +18,26 @@ package controller
 
 import (
 	"context"
-	"fmt"
 	"k8s.io/api/core/v1"
+	v12 "k8s.io/api/events/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	corev1alpha1 "test.kubebuilder.io/project/api/v1alpha1"
+	"test.kubebuilder.io/project/pkg/integrations"
 	"test.kubebuilder.io/project/pkg/resource"
+	"test.kubebuilder.io/project/pkg/sinks"
 	"time"
 )
 
 // AllResourceReconciler reconciles a AllResource object
 type AllResourceReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme       *runtime.Scheme
+	Integrations *integrations.Integrations
+	SinkClient   *sinks.Client
 }
 
 //+kubebuilder:rbac:groups=core,resources=allresources,verbs=get;list;watch;create;update;patch;delete
@@ -53,91 +57,71 @@ type AllResourceReconciler struct {
 func (r *AllResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	l := log.FromContext(ctx)
 	// result list 선언 + 에러 확인
-	resultList := &corev1alpha1.ResultList{}
-	err := r.List(ctx, resultList)
-	if err != nil {
-		return ctrl.Result{}, err
+	kubegptConfig := &corev1alpha1.Kubegpt{}
+	if err := r.Client.Get(ctx, req.NamespacedName, kubegptConfig); err != nil {
+		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	// event 수집이 실행되기 전 기존에 있던 result list 삭제
-	if len(resultList.Items) > 0 {
-		for _, result := range resultList.Items {
-			fmt.Printf("delete %s", result.Name)
-			err = r.DeleteAllOf(ctx, &result)
-		}
-
-	}
-	// event list 수집
-	var events v1.EventList
+	var events v12.EventList
 	if err := r.Client.List(ctx, &events); err != nil {
 		return ctrl.Result{}, err
 	}
-	// event 리소스에서 필요한 정보를 Event struct에 주입
-	var pod v1.Pod
+
+	resultList := &corev1alpha1.ResultList{}
+
 	for _, event := range events.Items {
-		eventPod := corev1alpha1.Event{
-			Type:    event.Type,
-			Reason:  event.Reason,
-			Count:   int16(event.Count),
-			Message: event.Message,
+		if event.Type == "Warning" && event.Regarding.Kind == "Pod" {
+			pod := &v1.Pod{}
+			if err := r.Get(ctx, client.ObjectKey{Name: event.Regarding.Name, Namespace: event.Regarding.Namespace}, pod); err != nil {
+				l.Error(err, "Pod 조회 실패", "name", event.Regarding.Name, "namespace", event.Regarding.Namespace)
+				continue
+			}
+
+			eventPod := corev1alpha1.Event{
+				Type:    event.Type,
+				Reason:  event.Reason,
+				Count:   int16(event.DeprecatedCount),
+				Message: event.Note,
+			}
+			// event의 리소스 이름과 네임스페이스 정보로 리소스 추적 (파드만)
+			// SerializeObjectAsJSON 함수 내에서 위에 선언한 Event struct와 pod 정보 result에 주입
+			jsonString, err := resource.SerializeObjectAsJSON(ctx, r.Client, client.ObjectKey{Name: event.Regarding.Name, Namespace: event.Regarding.Namespace}, pod, eventPod)
+			if err != nil {
+				// 에러 처리
+				continue
+			}
+			resultList.Items = append(resultList.Items, jsonString)
 		}
-		// event의 리소스 이름과 네임스페이스 정보로 리소스 추적 (파드만)
-		// SerializeObjectAsJSON 함수 내에서 위에 선언한 Event struct와 pod 정보 result에 주입
-		jsonString, err := resource.SerializeObjectAsJSON(ctx, r.Client, client.ObjectKey{Name: event.InvolvedObject.Name, Namespace: event.InvolvedObject.Namespace}, &pod, eventPod)
-		if err != nil {
-			// 에러 처리
-			continue
-		}
-		// 로그 출력 json 형태로
-		l.Info("Pod 정보 입력 :", "json", jsonString)
 	}
 
-	//results, err := resource.GetResult(ctx, r.Client)
-	//if err != nil {
-	//	return ctrl.Result{RequeueAfter: 30 * time.Second}, err
-	//}
-	//for _, result := range results {
-	//	l.Info("로그로그 :", "name", result)
-	//}
+	if kubegptConfig.Spec.Sink != nil && kubegptConfig.Spec.Sink.Type != "" && kubegptConfig.Spec.Sink.Endpoint != "" {
+		// sink 설정
+		var sinkType sinks.ISink
+		sinkType = sinks.NewSink(kubegptConfig.Spec.Sink.Type)
 
+		sinkType.Configure(*kubegptConfig, *r.SinkClient)
+
+		for _, result := range resultList.Items {
+			if err := sinkType.Emit(result.Spec); err != nil {
+				l.Error(err, "Sink 발송 실패")
+				continue
+			}
+			// 결과 상태 업데이트
+			result.Status.Webhook = kubegptConfig.Spec.Sink.Endpoint
+		}
+	}
+
+	// 결과 상태 업데이트
 	// reconcile duration 30s
 	return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
 }
 
-//// 이벤트 목록을 가져옵니다.
-//var events v1.EventList
-//if err := r.Client.List(ctx, &events); err != nil {
-//	return ctrl.Result{}, err
-//}
-//
-//// JSON to YAML 변환을 위한 Serializer 생성
-//s := json.NewSerializerWithOptions(json.DefaultMetaFactory, nil, nil, json.SerializerOptions{Yaml: true})
-//
-//for _, event := range events.Items {
-//	// 연관된 오브젝트를 가져옵니다.
-//	var obj runtime.Object // 연관된 오브젝트 타입에 따라 변경
-//	if err := r.Client.Get(ctx, client.ObjectKey{Name: event.InvolvedObject.Name, Namespace: event.InvolvedObject.Namespace}, obj); err != nil {
-//		// 오브젝트 가져오기 실패
-//		continue
-//	}
-//
-//	// 오브젝트를 YAML 형태로 변환
-//	yamlBytes, err := serializeToYAML(obj, s)
-//	if err != nil {
-//		// YAML 변환 실패
-//		continue
-//	}
-//
-//	// 여기서 yamlBytes를 사용하여 필요한 작업을 수행합니다.
-//	// 예: 로깅, 저장, CRD 업데이트 등
-//	l.Info("YAML for object", "yaml", string(yamlBytes))
-//}
-
 // SetupWithManager sets up the controller with the Manager.
 func (r *AllResourceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&corev1alpha1.Result{}).
-		Watches(&v1.Event{}, &handler.EnqueueRequestForObject{}).
+		For(&corev1alpha1.Kubegpt{}).
+		Watches(&v12.Event{}, &handler.EnqueueRequestForObject{}).
+		Watches(&corev1alpha1.Result{}, &handler.EnqueueRequestForObject{}).
 		Watches(&v1.Pod{}, &handler.EnqueueRequestForObject{}).
 		Complete(r)
 }

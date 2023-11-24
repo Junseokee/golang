@@ -30,3 +30,29 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - core.test.kubebuilder.io
+  resources:
+  - kubegpts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - core.test.kubebuilder.io
+  resources:
+  - kubegpts/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - core.test.kubebuilder.io
+  resources:
+  - kubegpts/status
+  verbs:
+  - get
+  - patch
+  - update
